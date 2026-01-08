@@ -119,20 +119,39 @@ func main() {
 	routes.InitFolders(apiRouter)
 	slackbot.InitSlackbot(apiRouter)
 
-	err = filepath.WalkDir("../frontend/dist", func(path string, d fs.DirEntry, err error) error {
-		if !d.IsDir() && d.Name() != "index.html" {
-			split := splitPath(path)
-			newPath := filepath.Join(split[3:]...)
-			router.StaticFile(fmt.Sprintf("/%s", newPath), path)
+	// Serve built frontend if it exists (production/release). In dev, frontend is served separately.
+	frontendDist := "../frontend/dist"
+	if st, err := os.Stat(frontendDist); err == nil && st.IsDir() {
+		err = filepath.WalkDir(frontendDist, func(path string, d fs.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				// Don't crash if a file can't be read
+				logger.StdErr.Println("[WARN] WalkDir:", walkErr)
+				return nil
+			}
+			if d == nil {
+				return nil
+			}
+	
+			if !d.IsDir() && d.Name() != "index.html" {
+				split := splitPath(path)
+				// split[0..2] is usually ["..","frontend","dist"], so strip that prefix safely
+				prefixLen := 3
+				if len(split) > prefixLen {
+					newPath := filepath.Join(split[prefixLen:]...)
+					router.StaticFile(fmt.Sprintf("/%s", newPath), path)
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			logger.StdErr.Println("[WARN] failed to walk dist dir:", err)
 		}
-		return nil
-	})
-	if err != nil {
-		log.Fatalf("failed to walk directories: %s", err)
+	
+		router.LoadHTMLFiles(filepath.Join(frontendDist, "index.html"))
+		router.NoRoute(noRouteHandler())
+	} else {
+		logger.StdErr.Println("[INFO] Frontend dist not found; skipping static frontend serving")
 	}
-
-	router.LoadHTMLFiles("../frontend/dist/index.html")
-	router.NoRoute(noRouteHandler())
 
 	// Init swagger documentation
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
