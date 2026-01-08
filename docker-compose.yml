@@ -1,27 +1,26 @@
-version: "3.9"
-
 services:
   mongo:
     image: mongo:6
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: schej-it
+    # RECOMENDO tirar a linha "ports" em produção (não expor o banco)
 
   server:
     image: golang:1.20
     working_dir: /app/server
     command: sh -c "go mod download && go run main.go"
-    env_file:
-      - server/.env
     environment:
-      - MONGODB_URI=mongodb://mongo:27017
-      - SERVICE_ACCOUNT_KEY_PATH=/secrets/service_account_key.json
+      - MONGODB_URI=mongodb://mongo:27017/schej-it
+      - PORT=3002
+      # se você não usa GCP/agendamento ainda, comente a linha abaixo:
+      # - SERVICE_ACCOUNT_KEY_PATH=/secrets/service_account_key.json
     volumes:
       - ./:/app
-      # Mount your GCP service account key JSON here
-      - ./secrets/service_account_key.json:/secrets/service_account_key.json:ro
+      # Só mantenha esse mount se o arquivo EXISTIR no repo ou no deploy:
+      # - ./secrets/service_account_key.json:/secrets/service_account_key.json:ro
     ports:
       - "3002:3002"
     depends_on:
@@ -33,6 +32,8 @@ services:
     command: sh -c "npm install && npm run serve -- --host 0.0.0.0 --port 8080"
     environment:
       - CHOKIDAR_USEPOLLING=true
+      # Quando for “amarrar” com a API:
+      # - VUE_APP_API_URL=https://api.seudominio.com
     volumes:
       - ./:/app
     ports:
