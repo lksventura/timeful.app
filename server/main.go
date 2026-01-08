@@ -88,12 +88,24 @@ func main() {
 
 	// Cors
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080", "https://www.schej.it", "https://schej.it", "https://www.timeful.app", "https://timeful.app"},
-		AllowMethods:     []string{"GET", "POST", "PATCH", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Content-Type"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+	    AllowOrigins: []string{
+	        "http://localhost:8080",
+	
+	        // EasyPanel (teste)
+	        "https://timeful-timeful-app.4kaj9t.easypanel.host",
+	
+	        // Seu domínio real
+	        "https://timeful.viaaha.com.br",
+	
+	        // Domínios oficiais do projeto
+	        "https://www.schej.it",
+	        "https://schej.it",
+	        "https://www.timeful.app",
+	        "https://timeful.app",
+	    },
+	    AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+	    AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+	    AllowCredentials: true,
 	}))
 
 	// Init database
