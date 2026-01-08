@@ -6,7 +6,6 @@ services:
       - mongo_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: schej-it
-    # RECOMENDO tirar a linha "ports" em produção (não expor o banco)
 
   server:
     image: golang:1.20
@@ -15,14 +14,8 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/schej-it
       - PORT=3002
-      # se você não usa GCP/agendamento ainda, comente a linha abaixo:
-      # - SERVICE_ACCOUNT_KEY_PATH=/secrets/service_account_key.json
     volumes:
       - ./:/app
-      # Só mantenha esse mount se o arquivo EXISTIR no repo ou no deploy:
-      # - ./secrets/service_account_key.json:/secrets/service_account_key.json:ro
-    ports:
-      - "3002:3002"
     depends_on:
       - mongo
 
@@ -32,12 +25,8 @@ services:
     command: sh -c "npm install && npm run serve -- --host 0.0.0.0 --port 8080"
     environment:
       - CHOKIDAR_USEPOLLING=true
-      # Quando for “amarrar” com a API:
-      # - VUE_APP_API_URL=https://api.seudominio.com
     volumes:
       - ./:/app
-    ports:
-      - "8080:8080"
     depends_on:
       - server
 
