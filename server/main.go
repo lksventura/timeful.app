@@ -141,16 +141,14 @@ func main() {
 	router.Run(":3002")
 }
 
-// Load .env variables
+// Load .env variables (optional in containers)
 func loadDotEnv() {
-	err := godotenv.Load(".env")
-
-	// Load stripe key
-	stripe.Key = os.Getenv("STRIPE_API_KEY")
-
-	if err != nil {
-		logger.StdErr.Panicln("Error loading .env file")
+	if err := godotenv.Load(".env"); err != nil {
+		logger.StdErr.Println("No .env file found, using environment variables")
 	}
+
+	// Load stripe key (will be empty if not set; that's ok unless billing is used)
+	stripe.Key = os.Getenv("STRIPE_API_KEY")
 }
 
 func noRouteHandler() gin.HandlerFunc {
