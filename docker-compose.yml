@@ -22,7 +22,7 @@ services:
   frontend:
     image: node:18
     working_dir: /app/frontend
-    command: sh -c "npm install && npm run serve"
+    command: sh -c "npm install && npm run serve -- --host 0.0.0.0 --port 8080 --disable-host-check"
     environment:
       - CHOKIDAR_USEPOLLING=true
       - HOST=0.0.0.0
