@@ -7,5 +7,11 @@ module.exports = defineConfig({
     host: "0.0.0.0",
     port: 8080,
     allowedHosts: "all",
-  },
+    proxy: {
+      "^/api": {
+        target: "http://server:3002",
+        changeOrigin: true,
+      },
+    },
+  }
 });
